@@ -27,10 +27,10 @@ module.exports = {
                     memberSyntaxSortOrder: {
                         type: "array",
                         items: {
-                            enum: ["none", "all", "multiple", "single"]
+                            enum: ["none", "all", "multiple", "single", "combined"]
                         },
                         uniqueItems: true,
-                        minItems: 4,
+                        minItems: 2,
                         maxItems: 4
                     },
                     typeSortStrategy: {
@@ -60,13 +60,21 @@ module.exports = {
             initialSource = null,
             allDeclarations = sourceCode.ast.body.filter(n => n.type === 'ImportDeclaration');
 
+        if (~memberSyntaxSortOrder.indexOf("combined") && (
+            ~memberSyntaxSortOrder.indexOf("all") ||
+            ~memberSyntaxSortOrder.indexOf("multiple") ||
+            ~memberSyntaxSortOrder.indexOf("single")
+        )) {
+            throw new Error("'combined' sort order cannot be combined with 'all'/'multiple'/'single'.");
+        }
+
         /**
          * Gets the used member syntax style.
          *
          * import "my-module.js" --> none
-         * import * as myModule from "my-module.js" --> all
-         * import {myMember} from "my-module.js" --> single
-         * import {foo, bar} from  "my-module.js" --> multiple
+         * import * as myModule from "my-module.js" --> all or combined
+         * import {myMember} from "my-module.js" --> single or combined
+         * import {foo, bar} from  "my-module.js" --> multiple or combined
          *
          * @param {ASTNode} node - the ImportDeclaration node.
          * @returns {string} used member parameter style, ["all", "multiple", "single"]
@@ -74,7 +82,9 @@ module.exports = {
         function usedMemberSyntax(node) {
             if (node.specifiers.length === 0) {
                 return "none";
-            } else if (node.specifiers[0].type === "ImportNamespaceSpecifier") {
+            } else if (~memberSyntaxSortOrder.indexOf("combined")) {
+                return "combined";
+            } else  if (node.specifiers[0].type === "ImportNamespaceSpecifier") {
                 return "all";
             } else if (node.specifiers[0].type === "ImportDefaultSpecifier") {
                 return "single";

@@ -11,7 +11,7 @@
 // Requirements
 //------------------------------------------------------------------------------
 
-var rule = require("../rules/sort-imports-es6");
+var rule = require("../rules/sort-imports");
 var RuleTester = require('eslint').RuleTester;
 
 //------------------------------------------------------------------------------
@@ -188,6 +188,16 @@ const fixtures = {
             "B.something()\n" +
             "import A from 'baz.js';",
         },
+        {
+            code:
+            "import A from 'foo';\n" +
+            "import { B } from 'bar';\n" +
+            "import * as C from 'baz';\n" +
+            "import 'hum';",
+            options: [{
+                memberSyntaxSortOrder: [ "combined", "none" ]
+            }]
+        }
     ],
     invalid: [
         {
@@ -531,6 +541,29 @@ const fixtures = {
             errors: [{
               expectedError,
             }],
+        },
+        {
+            code:
+            "import 'hum';\n" +
+            "import * as C from 'baz';\n" +
+            "import { B } from 'bar';\n" +
+            "import A from 'foo';",
+            output:
+            "import A from 'foo';\n" +
+            "import { B } from 'bar';\n" +
+            "import * as C from 'baz';\n" +
+            "import 'hum';",
+            errors: [
+                {
+                    message: "Expected 'combined' syntax before 'none' syntax.",
+                    type: "ImportDeclaration"
+                },
+                expectedError,
+                expectedError,
+            ],
+            options: [{
+                memberSyntaxSortOrder: [ "combined", "none" ]
+            }]
         },
     ]
 };

@@ -7,6 +7,6 @@
 
 module.exports = {
 	rules: {
-		'sort-imports-es6': require('./rules/sort-imports-es6')
+		'sort-imports': require('./rules/sort-imports')
 	}
 };
